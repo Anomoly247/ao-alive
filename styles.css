@@ -342,6 +342,7 @@ section:first-of-type { border-top: 0; }
 .guardian__body { padding: 20px 22px 22px; }
 .guardian__body .eyebrow { color: var(--magenta); }
 .guardian__body blockquote { font-family: var(--display); color: var(--ink); font-size: 19px; margin: 14px 0 0; }
+.guardian__body h4 { font-family: var(--display); color: var(--ink); font-size: 18px; margin: 18px 0 4px; }
 .guardian__promise { margin-top: 20px; font-size: 14px; border-left: 2px solid var(--gold); padding-left: 14px; }
 .guardian__promise b { color: var(--ink); }
 
