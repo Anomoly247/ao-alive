@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AO Beat Lab — Make a beat. Feel the feeling.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;700;800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#000000; --card:#050508; --panel:#0a0a12; --panel2:#07070d;
+    --pink:#f472b6; --purple:#a78bfa; --cyan:#22d3ee; --green:#22c55e; --gold:#fbbf24;
+    --goldcell:#FFC21A; --goldborder:#E89B00;
+    --border:rgba(167,139,250,.18); --border-hover:rgba(34,211,238,.4);
+    --grad:linear-gradient(90deg,#f472b6,#a78bfa,#22d3ee);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:#fff;font-family:'Geist',Inter,system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:radial-gradient(ellipse at 15% 0%,rgba(244,114,182,.10),transparent 45%),radial-gradient(ellipse at 90% 15%,rgba(34,211,238,.09),transparent 45%),radial-gradient(ellipse at 50% 100%,rgba(167,139,250,.08),transparent 50%)}
+  .mono{font-family:'Geist Mono',monospace}
+  .serif-i{font-family:'Instrument Serif',serif;font-style:italic}
+  .grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 20px;position:relative;z-index:1}
+  @media(min-width:768px){.wrap{padding:0 32px}}
+
+  /* breathing — AO Living Standard: scale 1→1.05 max, drift out of sync */
+  @keyframes breathe{0%,100%{transform:scale(1) translateY(0)}50%{transform:scale(1.04) translateY(-4px)}}
+  .br1{animation:breathe 3.2s ease-in-out infinite}
+  .br2{animation:breathe 3.9s ease-in-out -1.4s infinite}
+  .br3{animation:breathe 4.6s ease-in-out -2.2s infinite}
+  .br4{animation:breathe 5.3s ease-in-out -.8s infinite}
+  @keyframes flyup{0%{opacity:0;transform:translateY(6px) scale(.8)}15%{opacity:1}100%{opacity:0;transform:translateY(-46px) scale(1.15)}}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  @keyframes popin{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+  @keyframes bob{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-7px) scale(1.05)}}
+
+  /* HUD */
+  header{position:sticky;top:0;z-index:50;background:rgba(11,14,20,.88);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.07)}
+  .hud{display:flex;align-items:center;gap:12px;height:56px;max-width:1280px;margin:0 auto;padding:0 20px;flex-wrap:nowrap;overflow-x:auto}
+  @media(min-width:768px){.hud{padding:0 32px}}
+  .logo{font-weight:800;letter-spacing:.06em;font-size:17px;white-space:nowrap}
+  .hud .spacer{flex:1}
+  .pill{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);font-family:'Geist Mono',monospace;font-size:12px;white-space:nowrap}
+  .pill .num{font-weight:800;font-size:16px;color:var(--gold);font-family:'Geist',sans-serif}
+  .pill.done-pill{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.35);color:var(--green)}
+  .pill.home-link{text-decoration:none;color:#fff;cursor:pointer;transition:all .25s}
+  .pill.home-link:hover{border-color:rgba(34,211,238,.6);color:#22d3ee}
+  .coin{width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#fff3a6,#fbbf24 55%,#d97706);box-shadow:0 0 10px rgba(251,191,36,.6);display:inline-block;flex:none}
+  #flyZone{position:relative}
+  .fly{position:absolute;right:0;top:-6px;font-weight:800;color:var(--gold);font-size:15px;animation:flyup 1.6s ease forwards;pointer-events:none;white-space:nowrap;text-shadow:0 0 12px rgba(251,191,36,.7);z-index:60}
+
+  /* Hero */
+  .hero{text-align:center;padding:56px 0 30px}
+  @media(min-width:768px){.hero{padding:80px 0 40px}}
+  .eyebrow{font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.32em;color:rgba(255,255,255,.45)}
+  .hero h1{font-size:clamp(72px,15vw,170px);font-weight:800;line-height:.92;letter-spacing:-.02em;margin-top:10px;display:inline-block}
+  .hero .sub{font-size:clamp(22px,3.4vw,32px);color:rgba(255,255,255,.85);margin-top:6px}
+  .hero-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:26px}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:999px;font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:.08em;text-decoration:none;transition:all .25s;cursor:pointer;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff}
+  .btn:hover{background:#fff;color:#000}
+  .btn.hot{background:var(--grad);border:none;color:#fff;font-weight:700}
+  .btn.hot:hover{filter:brightness(1.15);color:#fff}
+  .note-line{text-align:center;color:#9ca3af;font-size:13.5px;margin-top:20px}
+  .note-line strong{color:#fff}
+
+  /* Sections */
+  section{padding:26px 0 8px}
+  .sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:18px}
+  .sec-head h2{font-size:20px;font-weight:800;letter-spacing:-.01em}
+  @media(min-width:768px){.sec-head h2{font-size:26px}}
+  .sec-note{font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.18em;color:rgba(255,255,255,.4);text-align:right}
+
+  /* Beat maker panel */
+  .lab-panel{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px;transition:background .4s,border-color .4s}
+  @media(min-width:768px){.lab-panel{padding:26px}}
+  .lab-panel.shadow{background:linear-gradient(160deg,#150829,#1A1030);border-color:#7C3AED}
+  .lab-title{font-size:clamp(24px,4.5vw,38px);font-weight:800;letter-spacing:-.01em;line-height:1.1}
+  .lab-title .note-sym{color:#FF6B6B}
+  .lab-sub{font-size:15px;font-weight:600;color:rgba(255,255,255,.6);margin-top:6px;line-height:1.5}
+  .lab-panel.shadow .lab-sub{color:#E9D5FF}
+  .status-pill{display:inline-flex;align-items:center;gap:8px;background:#000;border:1px solid rgba(255,255,255,.16);color:#fff;padding:8px 16px;border-radius:999px;font-weight:700;font-size:13px;white-space:nowrap}
+  .status-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.35);flex:none}
+  .status-pill.playing .status-dot{background:var(--green);box-shadow:0 0 8px var(--green);animation:bob 1s ease-in-out infinite}
+  .lab-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px;align-items:flex-start}
+  .pack-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+  .pack-btn{padding:12px 22px;border-radius:999px;font-weight:800;font-size:14.5px;min-height:48px;cursor:pointer;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;font-family:'Geist',sans-serif;transition:all .25s}
+  .pack-btn.active-bright{background:#FFC21A;color:#000;border-color:#FFC21A}
+  .pack-btn.active-shadow{background:#7C3AED;color:#fff;border-color:#A78BFA;box-shadow:0 0 0 2px rgba(167,139,250,.45)}
+  .shadow-line{font-size:13.5px;font-weight:600;color:#E9D5FF;margin-top:14px;line-height:1.6;display:none}
+  .shadow-line.show{display:block}
+  .transport{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:22px}
+  .play-btn{display:inline-flex;align-items:center;gap:9px;padding:14px 28px;border-radius:999px;border:none;font-weight:800;font-size:16px;min-height:52px;cursor:pointer;color:#fff;font-family:'Geist',sans-serif;transition:all .25s;background:#2EB872}
+  .play-btn.playing{background:#FF3D68}
+  .play-btn:hover{filter:brightness(1.12)}
+  .chip{padding:10px 18px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:#fff;font-weight:700;font-size:13.5px;cursor:pointer;min-height:44px;font-family:'Geist',sans-serif;transition:all .25s}
+  .chip:hover{border-color:var(--cyan)}
+  .chip.active{background:var(--grad);border-color:transparent;color:#fff}
+  .lab-panel.shadow .chip.active{background:#A78BFA;color:#000}
+  .clear-btn{padding:10px 18px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:transparent;color:rgba(255,255,255,.75);font-weight:700;font-size:13.5px;cursor:pointer;min-height:44px;font-family:'Geist',sans-serif;transition:all .25s}
+  .clear-btn:hover{border-color:#FF3D68;color:#FF3D68}
+  .mood-line{font-size:13.5px;font-weight:600;color:#E9D5FF;margin-top:12px;display:none}
+  .mood-line.show{display:block}
+  .mood-line strong{color:#fff}
+  .sliders{display:grid;gap:12px;margin-top:20px}
+  @media(min-width:640px){.sliders{grid-template-columns:1fr 1fr}}
+  .slider-box{background:var(--panel2);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:13px 16px}
+  .slider-box label{font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.18em;color:rgba(255,255,255,.55);display:flex;justify-content:space-between;align-items:baseline}
+  .slider-box label .val{font-family:'Geist',sans-serif;font-size:17px;font-weight:800;color:#FF6B6B;letter-spacing:0}
+  .slider-box label .val.vol{color:#fff}
+  .slider-box input[type=range]{width:100%;margin-top:9px;accent-color:#FFC21A;height:28px;cursor:pointer}
+
+  /* Sequencer grid */
+  .seq-wrap{overflow-x:auto;padding-bottom:6px;margin-top:20px}
+  .seq{min-width:560px}
+  .seq-head,.seq-row{display:grid;grid-template-columns:92px repeat(16,1fr);gap:5px;align-items:center}
+  .seq-head{margin-bottom:6px}
+  .seq-head span{font-family:'Geist Mono',monospace;font-size:10px;font-weight:700;color:rgba(255,255,255,.4);text-align:center}
+  .seq-head span.now{color:#FF6B6B}
+  .seq-row{margin-bottom:5px}
+  .rowlabel{font-size:12.5px;font-weight:800;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden}
+  .rowlabel .ric{font-size:23px;flex:none}
+  .cell{aspect-ratio:1/1;min-height:32px;width:100%;border-radius:8px;border:2px solid rgba(255,255,255,.10);background:rgba(255,255,255,.04);cursor:pointer;transition:transform .12s,box-shadow .12s,background .12s;padding:0}
+  .cell:hover{border-color:rgba(255,194,26,.55)}
+  .cell.on{background:#FFC21A;border-color:#E89B00;box-shadow:0 0 10px rgba(255,194,26,.35)}
+  .cell.now{box-shadow:0 0 0 2px #FF3D68,0 0 14px rgba(255,61,104,.5);transform:scale(1.1)}
+  .cell.on.now{box-shadow:0 0 0 2px #FF3D68,0 0 16px rgba(255,194,26,.6);transform:scale(1.1)}
+  .grid-hint{text-align:center;font-size:13.5px;font-weight:600;color:rgba(255,255,255,.5);margin-top:12px}
+
+  /* Drum pads */
+  .pads{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  @media(min-width:640px){.pads{grid-template-columns:repeat(6,1fr)}}
+  .pad{border:none;border-radius:16px;padding:18px 6px 14px;font-weight:800;color:#fff;font-size:14.5px;min-height:64px;cursor:pointer;font-family:'Geist',sans-serif;box-shadow:0 8px 20px rgba(0,0,0,.35);transition:transform .12s;text-shadow:0 1px 3px rgba(0,0,0,.35);line-height:1.25}
+  .pad:active{transform:scale(.95)}
+  .pad small{display:block;font-size:11px;opacity:.9;font-weight:600;margin-top:3px}
+  .pad .pem{display:block;font-size:32px;line-height:1.15;margin-bottom:2px}
+
+  /* Lesson cards */
+  .grid{display:grid;grid-template-columns:1fr;gap:20px}
+  @media(min-width:640px){.grid-lessons{grid-template-columns:repeat(3,1fr)}}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:border-color .3s,transform .3s,box-shadow .3s}
+  .card:hover{border-color:var(--border-hover);transform:translateY(-4px);box-shadow:0 14px 44px rgba(34,211,238,.10)}
+  .topbar{height:4px;background:var(--grad)}
+  .visual{position:relative;overflow:hidden;height:120px;background:linear-gradient(135deg,rgba(244,114,182,.22),rgba(167,139,250,.22),rgba(34,211,238,.22));cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .visual .glyph{font-size:58px;font-weight:800;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.45);line-height:1}
+  .reward{position:absolute;top:10px;right:10px;padding:5px 11px;border-radius:999px;background:rgba(0,0,0,.65);border:1px solid rgba(251,191,36,.55);color:var(--gold);font-family:'Geist Mono',monospace;font-size:11px;font-weight:700;backdrop-filter:blur(4px)}
+  .donebadge{position:absolute;top:10px;left:10px;padding:5px 11px;border-radius:999px;background:rgba(34,197,94,.9);color:#04140a;font-family:'Geist Mono',monospace;font-size:11px;font-weight:700;display:none}
+  .card.done .donebadge{display:inline-block;animation:popin .45s ease}
+  .cardbody{padding:16px 18px 18px}
+  .titlerow{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .gnumpill{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.14em;padding:4px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.55)}
+  .card h3{font-size:19px;font-weight:800;letter-spacing:-.01em}
+  .motto{font-size:17px;color:rgba(255,255,255,.65);margin-top:3px}
+  .pbar{height:8px;border-radius:99px;background:var(--panel);overflow:hidden;margin-top:14px}
+  .pfill{height:100%;width:0;background:var(--grad);border-radius:99px;transition:width .6s ease}
+  .tap-hint{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.16em;color:rgba(255,255,255,.35);margin-top:10px}
+  .card.done .tap-hint{color:var(--green)}
+  .open-btn{margin-top:14px;width:100%;padding:12px;border-radius:999px;border:none;background:#fff;color:#000;font-family:'Geist Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.06em;cursor:pointer;transition:all .25s;min-height:48px}
+  .open-btn:hover{background:var(--grad);color:#fff}
+  .panel{max-height:0;opacity:0;overflow:hidden;transition:max-height .65s ease,opacity .45s ease}
+  .panel.open{max-height:1400px;opacity:1}
+  .panel-inner{padding:2px 18px 20px}
+  .qblock{margin-top:16px}
+  .qtext{font-weight:800;font-size:15.5px;line-height:1.45}
+  .stack{display:grid;gap:8px;margin-top:10px}
+  .choice{display:block;width:100%;text-align:left;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.03);color:#fff;font-family:'Geist',sans-serif;font-size:14.5px;font-weight:600;cursor:pointer;transition:all .25s;min-height:44px}
+  .choice:hover{border-color:var(--cyan);background:rgba(34,211,238,.06)}
+  .choice.right{border-color:var(--green);background:rgba(34,197,94,.16);color:#d9ffe4}
+  .choice.wrong{border-color:var(--pink);background:rgba(244,114,182,.13);animation:shake .3s}
+  .qfeed{display:none;font-size:13.5px;font-weight:700;margin-top:9px;color:#7ee2a8}
+  .qfeed.show{display:block}
+  .qfeed.bad{color:#ff9aeb}
+  .feedback{display:none;margin-top:16px;padding:11px 14px;border-radius:12px;background:rgba(34,197,94,.13);border:1px solid rgba(34,197,94,.4);color:#c9f7d6;font-size:14px;font-weight:600;line-height:1.5}
+  .feedback.show{display:block;animation:popin .4s ease}
+
+  /* Footer */
+  footer{margin-top:56px;border-top:1px solid rgba(255,255,255,.08);padding:34px 0 26px;text-align:center}
+  .safe{font-size:clamp(26px,4.5vw,40px)}
+  .safe .grad-text{font-family:'Geist',sans-serif;font-weight:800;font-style:normal;letter-spacing:-.01em}
+  footer .mail{display:inline-block;margin-top:12px;color:rgba(255,255,255,.7);font-family:'Geist Mono',monospace;font-size:13px;text-decoration:underline;text-underline-offset:4px}
+  footer .mail:hover{color:#fff}
+  .footline{margin-top:20px;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.2em;color:rgba(255,255,255,.22)}
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    html{scroll-behavior:auto}
+  }
+
+  /* Living world background — breathing glows, twinkling stars, beat glow */
+  .world{position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none}
+  header,.wrap{position:relative;z-index:1}
+  .orb{position:absolute;border-radius:50%;filter:blur(50px);opacity:.5;will-change:transform}
+  .o1{width:420px;height:420px;left:-120px;top:-100px;background:radial-gradient(circle,#f472b6,transparent 65%);animation:breathe1 3.9s ease-in-out infinite}
+  .o2{width:380px;height:380px;right:-100px;top:6%;background:radial-gradient(circle,#22d3ee,transparent 65%);animation:breathe2 3.2s ease-in-out infinite}
+  .o3{width:300px;height:300px;left:34%;top:38%;background:radial-gradient(circle,#a78bfa,transparent 65%);animation:breathe1 4.1s ease-in-out infinite reverse}
+  .o4{width:340px;height:340px;right:8%;bottom:-120px;background:radial-gradient(circle,#fbbf24,transparent 65%);opacity:.34;animation:breathe2 6s ease-in-out infinite}
+  .o5{width:180px;height:180px;left:10%;bottom:14%;background:radial-gradient(circle,#2dd4bf,transparent 65%);opacity:.4;animation:breathe1 3.6s ease-in-out infinite}
+  .o6{width:150px;height:150px;right:26%;top:16%;background:radial-gradient(circle,#f472b6,transparent 65%);opacity:.36;animation:breathe2 3.8s ease-in-out infinite reverse}
+  @keyframes breathe1{0%,100%{transform:scale(1) translate(0,0)}50%{transform:scale(1.05) translate(4px,-5px)}}
+  @keyframes breathe2{0%,100%{transform:scale(1.03) translate(0,0)}50%{transform:scale(.99) translate(-5px,4px)}}
+  .stars{position:absolute;inset:0}
+  .star{position:absolute;border-radius:50%;background:#fff;opacity:.15;animation:twinkle ease-in-out infinite}
+  @keyframes twinkle{0%,100%{opacity:.1}50%{opacity:.75}}
+  .stepglow{position:absolute;left:50%;top:44%;width:72vmin;height:72vmin;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(251,191,36,.20),transparent 62%);opacity:0;transition:opacity .1s ease-out}
+  .world.shadow .o1{background:radial-gradient(circle,#8b5cf6,transparent 65%)}
+  .world.shadow .o2{background:radial-gradient(circle,#5b21b6,transparent 65%)}
+  .world.shadow .o3{background:radial-gradient(circle,#a78bfa,transparent 65%)}
+  .world.shadow .o4{background:radial-gradient(circle,#312e81,transparent 65%)}
+  .world.shadow .stepglow{background:radial-gradient(circle,rgba(167,139,250,.24),transparent 62%)}
+  @media (prefers-reduced-motion: reduce){.orb,.star{animation:none!important}.stepglow{transition:none}}
+</style>
+</head>
+<body>
+
+<div class="world" id="world" aria-hidden="true">
+  <div class="orb o1"></div>
+  <div class="orb o2"></div>
+  <div class="orb o3"></div>
+  <div class="orb o4"></div>
+  <div class="orb o5"></div>
+  <div class="orb o6"></div>
+  <div class="stepglow" id="stepGlow"></div>
+  <div class="stars" id="stars"></div>
+</div>
+
+<header>
+  <div class="hud">
+    <span class="logo">AO <span class="grad-text">BEAT LAB</span></span>
+    <a class="pill home-link" href="https://anomartsy.xyz/games/">← GAMES</a>
+    <a class="pill home-link" href="https://anomartsy.xyz/">HOME</a>
+    <span class="spacer"></span>
+    <span class="pill done-pill" id="lessonPill">0/3 LESSONS</span>
+    <span id="flyZone"><span class="pill"><span class="coin"></span> ANOM <span class="num" id="anomNum">0</span></span></span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <p class="eyebrow">TAP THE GRID • HEAR IT PLAY</p>
+    <h1 class="grad-text br1">BEAT LAB</h1>
+    <p class="sub serif-i">Make a beat. Feel the feeling.</p>
+    <div class="hero-btns">
+      <a class="btn hot" href="#beatmaker">MAKE A BEAT ↓</a>
+      <a class="btn" href="#lessons">LESSONS</a>
+    </div>
+    <p class="note-line">No files — <strong>all sounds are made live!</strong></p>
+  </div>
+
+  <!-- BEAT MAKER -->
+  <section id="beatmaker">
+    <div class="lab-panel" id="labPanel">
+      <div class="lab-top">
+        <div>
+          <h2 class="lab-title" id="labTitle">Beat Lab <span class="note-sym">♪</span></h2>
+          <p class="lab-sub" id="labSub">Tap the grid. Hear your dragon dance. No files — all sounds are made live!</p>
+        </div>
+        <span class="status-pill" id="statusPill"><span class="status-dot"></span><span id="statusText">Press Play to hear your beat</span></span>
+      </div>
+
+      <div class="pack-row">
+        <button class="pack-btn active-bright" id="packBright" type="button">Bright Beats ☀️</button>
+        <button class="pack-btn" id="packShadow" type="button">Shadow Beats 👻</button>
+      </div>
+      <p class="shadow-line" id="shadowLine"></p>
+
+      <div class="transport">
+        <button class="play-btn" id="playBtn" type="button">▶ Play Beat</button>
+        <span id="presetChips" style="display:contents"></span>
+        <button class="clear-btn" id="clearBtn" type="button">Clear</button>
+      </div>
+      <p class="mood-line" id="moodLine"></p>
+
+      <div class="sliders">
+        <div class="slider-box">
+          <label>TEMPO <span class="val" id="bpmVal">100 BPM</span></label>
+          <input type="range" id="bpmSlider" min="60" max="160" value="100" aria-label="Tempo in BPM">
+        </div>
+        <div class="slider-box">
+          <label>VOLUME <span class="val vol" id="volVal">75%</span></label>
+          <input type="range" id="volSlider" min="0" max="100" value="75" aria-label="Volume">
+        </div>
+      </div>
+
+      <div class="seq-wrap">
+        <div class="seq">
+          <div class="seq-head" id="seqHead"></div>
+          <div id="seqRows"></div>
+        </div>
+      </div>
+      <p class="grid-hint">Tap any square to turn that sound on or off • Gold = playing</p>
+    </div>
+  </section>
+
+  <!-- DRUM PADS -->
+  <section id="pads">
+    <div class="sec-head">
+      <h2>Drum Pads</h2>
+      <span class="sec-note">KEYS 1–6 WORK TOO!</span>
+    </div>
+    <div class="pads" id="padGrid"></div>
+  </section>
+
+  <!-- LESSONS -->
+  <section id="lessons">
+    <div class="sec-head">
+      <h2>Lessons</h2>
+      <span class="sec-note">LEARN • PLAY • EARN ANOM</span>
+    </div>
+    <div class="grid grid-lessons" id="lessonGrid"></div>
+    <p class="note-line">Finish all 3 lessons to earn <strong>75 ANOM</strong>.</p>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p class="safe serif-i"><span class="grad-text">Oly Oly All Come Free!</span></p>
+    <a class="mail" href="mailto:anom@anomoriginals.lol">anom@anomoriginals.lol</a>
+    <p class="footline">© AO UNIVERSE • MAKE A BEAT • FEEL THE FEELING</p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ===== Data — verbatim from Dragon-Mounts-App.tsx ===== */
+  var PRESETS={
+   'Dragon Groove':[
+    [true,false,false,false,true,false,false,false,true,false,false,false,true,false,false,false],
+    [false,false,false,false,true,false,false,false,false,false,false,false,true,false,false,false],
+    [true,false,true,false,true,false,true,false,true,false,true,false,true,false,true,false],
+    [true,false,false,false,false,false,true,false,false,false,true,false,false,false,false,false]
+   ],
+   'Star Beat':[
+    [true,false,false,true,false,false,true,false,false,false,true,false,false,false,true,false],
+    [false,false,true,false,false,false,false,true,false,false,true,false,false,false,false,true],
+    [true,true,false,true,true,false,true,true,false,true,true,false,true,true,false,true],
+    [false,false,false,false,true,false,false,false,false,true,false,false,false,false,true,false]
+   ],
+   'Forest Bounce':[
+    [true,false,true,false,false,false,true,false,true,false,true,false,false,false,true,false],
+    [false,false,false,false,true,false,false,false,false,false,false,false,true,false,false,false],
+    [true,false,true,true,false,true,false,true,true,false,true,true,false,true,false,true],
+    [false,true,false,false,false,true,false,false,false,true,false,false,false,true,false,false]
+   ]
+  };
+  var SHADOW_PRESETS={
+   'Midnight Haunt':[
+    [true,false,false,false,false,false,false,false,true,false,false,false,false,false,false,false],
+    [false,false,false,false,true,false,false,false,false,false,false,false,true,false,false,false],
+    [false,false,false,false,false,false,true,false,false,false,false,false,false,false,true,false],
+    [false,false,true,false,false,false,false,false,false,false,true,false,false,false,false,false]
+   ],
+   'Ghost Groove':[
+    [true,false,false,true,false,false,true,false,false,true,false,false,true,false,false,false],
+    [false,false,true,false,false,true,false,false,false,false,true,false,false,true,false,false],
+    [true,false,false,false,false,false,false,true,false,false,false,false,true,false,false,false],
+    [false,false,true,false,true,false,true,false,false,false,true,false,false,false,true,false]
+   ],
+   'Shadow Pulse':[
+    [true,false,true,false,true,false,true,false,true,false,true,false,true,false,true,false],
+    [false,false,false,false,true,false,false,false,false,false,false,false,true,false,false,false],
+    [true,false,false,false,true,false,false,false,true,false,false,false,true,false,false,false],
+    [true,false,true,false,true,false,true,false,true,false,true,false,true,false,true,false]
+   ]
+  };
+  var SHADOW_PRESET_BPM={'Midnight Haunt':80,'Ghost Groove':100,'Shadow Pulse':130};
+  var SHADOW_PRESET_MOOD={'Midnight Haunt':'Slow • Sparse • Eerie chimes','Ghost Groove':'Bouncy ghost groove • Syncopated hats','Shadow Pulse':'Driving dark pulse • Heavy bass'};
+  var BRIGHT_ROWS=['Kick','Snare','Hi-Hat','Sparkle'];
+  var SHADOW_ROWS=['Shadow Bass','Ghost Whisper','Moon Chime','Night Hat'];
+  var PAD_SOUNDS=['Kick','Snare','Hi-Hat','Clap','Bass','Sparkle'];
+  var PAD_COLORS=['#FF6B6B','#FFC21A','#2EC4B6','#8B5CF6','#4EA8FF','#FF8A3D'];
+  var SHADOW_PAD_SOUNDS=['Shadow Bass','Ghost Whisper','Moon Chime','Night Hat','Kick','Snare'];
+  var EMOTES={'Kick':'🦶','Snare':'🥁','Hi-Hat':'🔔','Clap':'👏','Bass':'🔊','Sparkle':'✨','Shadow Bass':'🌑','Ghost Whisper':'👻','Moon Chime':'🌙','Night Hat':'🎩'};
+  var SHADOW_PAD_COLORS=['#4C1D95','#7C3AED','#A78BFA','#312E81','#FF6B6B','#FFC21A'];
+  var LESSONS=[
+   {id:'lesson1',title:'What Is a Beat?',reward:20,desc:'Feel the pulse that makes music move.',glyph:'💓',qs:[{q:'What makes a beat?',opts:['A steady pulse you can clap to','A quiet picture','A dragon nap'],a:0},{q:'Which pattern sounds like a beat?',opts:['Boom — boom — boom — boom','Shhh... shhh... shhh','One loud crash, then silence'],a:0}]},
+   {id:'lesson2',title:'Counting to 4',reward:25,desc:'Count 1 • 2 • 3 • 4 and feel the loop.',glyph:'🔢',qs:[{q:'After 1-2-3, what comes next?',opts:['4','9','100'],a:0},{q:'How many beats are in 1-2-3-4?',opts:['4 beats','2 beats','7 beats'],a:0}]},
+   {id:'lesson3',title:'Kind Riders',reward:30,desc:'Great riders share, cheer, and care.',glyph:'💛',qs:[{q:'A friend feels stuck. What helps most?',opts:['Say “You got this!” and share an idea','Laugh and walk away','Take their dragon'],a:0},{q:'Your friend made a cool beat. You say…',opts:['“Wow! I love that sound!”','“Mine is better.”','Nothing at all'],a:0}]}
+  ];
+
+  function $(id){ return document.getElementById(id); }
+  function clonePattern(p){ return p.map(function(r){ return r.slice(); }); }
+  function emptyPattern(){ return [0,1,2,3].map(function(){ return Array(16).fill(false); }); }
+
+  /* ===== State (mirrors the source) ===== */
+  var beatPack='bright';
+  var volume=75;
+  var playing=false;
+  var step=0;          /* next step to play */
+  var shownStep=-1;    /* step currently highlighted */
+  var beatCount=0;
+  var tickCount=0;
+  var timer=null;
+  var stores={
+    bright:{pattern:clonePattern(PRESETS['Dragon Groove']),preset:'Dragon Groove',bpm:100},
+    shadow:{pattern:clonePattern(SHADOW_PRESETS['Midnight Haunt']),preset:'Midnight Haunt',bpm:80}
+  };
+  var pattern=stores.bright.pattern;
+  var presetName=stores.bright.preset;
+  var bpm=stores.bright.bpm;
+
+  /* ===== Audio — playSound ported from the source ===== */
+  var audioCtx=null;
+  function actx(){
+    if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  function playSound(kind, when){
+    when=when||0;
+    try{
+      var ac=actx(); var t=ac.currentTime+when; var g=ac.createGain(); g.gain.value=volume/100; g.connect(ac.destination);
+      if(kind==='Shadow Bass'){ var o=ac.createOscillator(); o.type='sine'; o.frequency.setValueAtTime(58,t); o.frequency.exponentialRampToValueAtTime(38,t+0.4); var og=ac.createGain(); og.gain.setValueAtTime(0.85,t); og.gain.exponentialRampToValueAtTime(0.001,t+0.55); o.connect(og); og.connect(g); o.start(t); o.stop(t+0.6); var lfo=ac.createOscillator(); lfo.frequency.value=7; var lg=ac.createGain(); lg.gain.value=12; lfo.connect(lg); lg.connect(o.frequency); lfo.start(t); lfo.stop(t+0.5); return; }
+      if(kind==='Ghost Whisper'){ var len=ac.sampleRate*0.7; var buf=ac.createBuffer(1,len,ac.sampleRate); var d=buf.getChannelData(0); for(var i=0;i<len;i++) d[i]=(Math.random()*2-1)*(1-i/len); var src=ac.createBufferSource(); src.buffer=buf; var f=ac.createBiquadFilter(); f.type='bandpass'; f.Q.value=2.5; f.frequency.setValueAtTime(500,t); f.frequency.exponentialRampToValueAtTime(2400,t+0.35); f.frequency.exponentialRampToValueAtTime(600,t+0.7); var og2=ac.createGain(); og2.gain.setValueAtTime(0.0001,t); og2.gain.exponentialRampToValueAtTime(0.32,t+0.15); og2.gain.exponentialRampToValueAtTime(0.001,t+0.7); src.connect(f); f.connect(og2); og2.connect(g); src.start(t); return; }
+      if(kind==='Moon Chime'){ [1046,1318,1568,2093].forEach(function(fr,i){ var o=ac.createOscillator(); o.type='triangle'; o.frequency.value=fr; var og=ac.createGain(); var tt=t+i*0.09; og.gain.setValueAtTime(0.0001,tt); og.gain.exponentialRampToValueAtTime(0.24,tt+0.02); og.gain.exponentialRampToValueAtTime(0.001,tt+0.7); o.connect(og); og.connect(g); o.start(tt); o.stop(tt+0.75); }); var dl=ac.createDelay(0.5); dl.delayTime.value=0.22; var fb=ac.createGain(); fb.gain.value=0.35; g.connect(dl); dl.connect(fb); fb.connect(g); return; }
+      if(kind==='Night Hat'){ var len2=ac.sampleRate*0.05; var buf2=ac.createBuffer(1,len2,ac.sampleRate); var d2=buf2.getChannelData(0); for(var j=0;j<len2;j++) d2[j]=(Math.random()*2-1)*(1-j/len2); var src2=ac.createBufferSource(); src2.buffer=buf2; var f2=ac.createBiquadFilter(); f2.type='highpass'; f2.frequency.value=6500; src2.connect(f2); f2.connect(g); src2.start(t); return; }
+      if(beatPack==='shadow'&&kind==='Kick'){ var o3=ac.createOscillator(); o3.type='sine'; o3.frequency.setValueAtTime(110,t); o3.frequency.exponentialRampToValueAtTime(32,t+0.28); var og3=ac.createGain(); og3.gain.setValueAtTime(0.9,t); og3.gain.exponentialRampToValueAtTime(0.001,t+0.34); o3.connect(og3); og3.connect(g); o3.start(t); o3.stop(t+0.36); return; }
+      if(beatPack==='shadow'&&kind==='Snare'){ var len3=ac.sampleRate*0.22; var buf3=ac.createBuffer(1,len3,ac.sampleRate); var d3=buf3.getChannelData(0); for(var k=0;k<len3;k++) d3[k]=(Math.random()*2-1)*(1-k/len3); var src3=ac.createBufferSource(); src3.buffer=buf3; var f3=ac.createBiquadFilter(); f3.type='lowpass'; f3.frequency.value=1800; src3.connect(f3); f3.connect(g); src3.start(t); return; }
+      if(beatPack==='shadow'&&kind==='Hi-Hat'){ var len4=ac.sampleRate*0.05; var buf4=ac.createBuffer(1,len4,ac.sampleRate); var d4=buf4.getChannelData(0); for(var m=0;m<len4;m++) d4[m]=(Math.random()*2-1)*(1-m/len4); var src4=ac.createBufferSource(); src4.buffer=buf4; var f4=ac.createBiquadFilter(); f4.type='highpass'; f4.frequency.value=6000; src4.connect(f4); f4.connect(g); src4.start(t); return; }
+      if(kind==='Tick'){ var o4=ac.createOscillator(); o4.type='triangle'; o4.frequency.value=880; var og4=ac.createGain(); og4.gain.setValueAtTime(0.22,t); og4.gain.exponentialRampToValueAtTime(0.001,t+0.06); o4.connect(og4); og4.connect(g); o4.start(t); o4.stop(t+0.07); }
+      else if(kind==='Kick'){ var o5=ac.createOscillator(); o5.type='sine'; o5.frequency.setValueAtTime(150,t); o5.frequency.exponentialRampToValueAtTime(42,t+0.22); var og5=ac.createGain(); og5.gain.setValueAtTime(0.9,t); og5.gain.exponentialRampToValueAtTime(0.001,t+0.28); o5.connect(og5); og5.connect(g); o5.start(t); o5.stop(t+0.3); }
+      else if(kind==='Snare'){ var len5=ac.sampleRate*0.18; var buf5=ac.createBuffer(1,len5,ac.sampleRate); var d5=buf5.getChannelData(0); for(var n=0;n<len5;n++) d5[n]=(Math.random()*2-1)*(1-n/len5); var src5=ac.createBufferSource(); src5.buffer=buf5; var f5=ac.createBiquadFilter(); f5.type='highpass'; f5.frequency.value=900; src5.connect(f5); f5.connect(g); src5.start(t); var o6=ac.createOscillator(); o6.type='triangle'; o6.frequency.value=190; var og6=ac.createGain(); og6.gain.setValueAtTime(0.25,t); og6.gain.exponentialRampToValueAtTime(0.001,t+0.12); o6.connect(og6); og6.connect(g); o6.start(t); o6.stop(t+0.13); }
+      else if(kind==='Hi-Hat'){ var len6=ac.sampleRate*0.06; var buf6=ac.createBuffer(1,len6,ac.sampleRate); var d6=buf6.getChannelData(0); for(var p=0;p<len6;p++) d6[p]=(Math.random()*2-1)*(1-p/len6); var src6=ac.createBufferSource(); src6.buffer=buf6; var f6=ac.createBiquadFilter(); f6.type='highpass'; f6.frequency.value=7000; src6.connect(f6); f6.connect(g); src6.start(t); }
+      else if(kind==='Clap'){ [0,0.07,0.14].forEach(function(off){ var len7=ac.sampleRate*0.05; var buf7=ac.createBuffer(1,len7,ac.sampleRate); var d7=buf7.getChannelData(0); for(var q=0;q<len7;q++) d7[q]=(Math.random()*2-1)*(1-q/len7); var src7=ac.createBufferSource(); src7.buffer=buf7; var f7=ac.createBiquadFilter(); f7.type='bandpass'; f7.frequency.value=1300; src7.connect(f7); f7.connect(g); src7.start(t+off); }); }
+      else if(kind==='Bass'){ var o7=ac.createOscillator(); o7.type='sine'; o7.frequency.value=82; var og7=ac.createGain(); og7.gain.setValueAtTime(0.55,t); og7.gain.exponentialRampToValueAtTime(0.001,t+0.35); o7.connect(og7); og7.connect(g); o7.start(t); o7.stop(t+0.36); }
+      else if(kind==='Sparkle'){ [523,659,784].forEach(function(fr,i){ var o=ac.createOscillator(); o.type='triangle'; o.frequency.value=fr; var og=ac.createGain(); og.gain.setValueAtTime(0.0001,t+i*0.07); og.gain.exponentialRampToValueAtTime(0.22,t+i*0.07+0.02); og.gain.exponentialRampToValueAtTime(0.001,t+i*0.07+0.28); o.connect(og); og.connect(g); o.start(t+i*0.07); o.stop(t+i*0.07+0.3); }); }
+    }catch(e){}
+  }
+
+  /* ===== Sequencer UI ===== */
+  function currentRows(){ return beatPack==='shadow'?SHADOW_ROWS:BRIGHT_ROWS; }
+
+  function renderHead(){
+    var head=$('seqHead'); head.innerHTML='';
+    var blank=document.createElement('span'); head.appendChild(blank);
+    for(var i=0;i<16;i++){
+      var s=document.createElement('span');
+      s.textContent=i+1; s.id='stepnum-'+i;
+      head.appendChild(s);
+    }
+  }
+  function renderGrid(){
+    renderHead();
+    var rowsEl=$('seqRows'); rowsEl.innerHTML='';
+    var rows=currentRows();
+    rows.forEach(function(rowName,r){
+      var row=document.createElement('div'); row.className='seq-row';
+      var lab=document.createElement('span'); lab.className='rowlabel';
+      lab.innerHTML='<span class="ric">'+(EMOTES[rowName]||'🥁')+'</span>'+rowName;
+      row.appendChild(lab);
+      for(var c=0;c<16;c++){
+        (function(r,c){
+          var b=document.createElement('button');
+          b.type='button'; b.className='cell'+(pattern[r][c]?' on':'');
+          b.id='cell-'+r+'-'+c;
+          b.setAttribute('aria-label',rows[r]+' step '+(c+1)+' '+(pattern[r][c]?'on':'off'));
+          b.addEventListener('click',function(){ toggleCell(r,c); });
+          row.appendChild(b);
+        })(r,c);
+      }
+      rowsEl.appendChild(row);
+    });
+    markStep();
+  }
+  function markStep(){
+    for(var c=0;c<16;c++){
+      var num=$('stepnum-'+c);
+      if(num) num.classList.toggle('now', playing&&c===shownStep);
+      for(var r=0;r<4;r++){
+        var cell=$('cell-'+r+'-'+c);
+        if(cell) cell.classList.toggle('now', playing&&c===shownStep);
+      }
+    }
+  }
+  function toggleCell(r,c){
+    pattern[r][c]=!pattern[r][c];
+    stores[beatPack].pattern=pattern;
+    var cell=$('cell-'+r+'-'+c);
+    if(cell){
+      cell.classList.toggle('on',pattern[r][c]);
+      cell.setAttribute('aria-label',currentRows()[r]+' step '+(c+1)+' '+(pattern[r][c]?'on':'off'));
+    }
+    if(pattern[r][c]) playSound(currentRows()[r]);
+  }
+
+  function renderChips(){
+    var wrap=$('presetChips'); wrap.innerHTML='';
+    var names=beatPack==='shadow'?Object.keys(SHADOW_PRESETS):Object.keys(PRESETS);
+    names.forEach(function(name){
+      var b=document.createElement('button');
+      b.type='button'; b.className='chip'+(presetName===name?' active':'');
+      b.textContent=beatPack==='shadow'?(name+' • '+SHADOW_PRESET_BPM[name]+' BPM'):name;
+      b.addEventListener('click',function(){ loadPreset(name); });
+      wrap.appendChild(b);
+    });
+    var mood=$('moodLine');
+    if(beatPack==='shadow'){
+      mood.innerHTML='<strong>'+presetName+'</strong> — '+SHADOW_PRESET_MOOD[presetName];
+      mood.classList.add('show');
+    } else {
+      mood.classList.remove('show'); mood.innerHTML='';
+    }
+  }
+  function loadPreset(name){
+    if(beatPack==='shadow'){
+      pattern=clonePattern(SHADOW_PRESETS[name]);
+      bpm=SHADOW_PRESET_BPM[name];
+      stores.shadow.bpm=bpm;
+    } else {
+      pattern=clonePattern(PRESETS[name]);
+    }
+    presetName=name;
+    stores[beatPack].pattern=pattern;
+    stores[beatPack].preset=presetName;
+    $('bpmSlider').value=bpm; $('bpmVal').textContent=bpm+' BPM';
+    if(playing) restartTimer();
+    renderChips(); renderGrid();
+  }
+
+  function renderPads(){
+    var grid=$('padGrid'); grid.innerHTML='';
+    var sounds=beatPack==='shadow'?SHADOW_PAD_SOUNDS:PAD_SOUNDS;
+    var colors=beatPack==='shadow'?SHADOW_PAD_COLORS:PAD_COLORS;
+    sounds.forEach(function(s,i){
+      var b=document.createElement('button');
+      b.type='button'; b.className='pad'; b.style.background=colors[i];
+      b.innerHTML='<span class="pem">'+(EMOTES[s]||'🎵')+'</span>'+s+'<small>Key '+(i+1)+'</small>';
+      b.addEventListener('click',function(){ playSound(s); });
+      grid.appendChild(b);
+    });
+  }
+  function currentPads(){ return beatPack==='shadow'?SHADOW_PAD_SOUNDS:PAD_SOUNDS; }
+
+  function renderPackChrome(){
+    $('labPanel').classList.toggle('shadow', beatPack==='shadow');
+    $('world').classList.toggle('shadow', beatPack==='shadow');
+    $('packBright').className='pack-btn'+(beatPack==='bright'?' active-bright':'');
+    $('packShadow').className='pack-btn'+(beatPack==='shadow'?' active-shadow':'');
+    if(beatPack==='shadow'){
+      $('labTitle').innerHTML='Shadow Beat Pack — Spooky Sounds Only 👻 <span class="note-sym">♪</span>';
+      $('labSub').textContent='Dark purple beats • glowing pads • spooky sounds only.';
+      $('shadowLine').textContent='Shadow presets: '+Object.keys(SHADOW_PRESETS).map(function(k){ return k+' — '+SHADOW_PRESET_BPM[k]+' BPM • '+SHADOW_PRESET_MOOD[k]; }).join(' • ');
+      $('shadowLine').classList.add('show');
+    } else {
+      $('labTitle').innerHTML='Beat Lab <span class="note-sym">♪</span>';
+      $('labSub').textContent='Tap the grid. Hear your dragon dance. No files — all sounds are made live!';
+      $('shadowLine').classList.remove('show'); $('shadowLine').textContent='';
+    }
+  }
+  function switchBeatPack(next){
+    if(next===beatPack) return;
+    stopSeq();
+    stores[beatPack].pattern=pattern; stores[beatPack].preset=presetName; stores[beatPack].bpm=bpm;
+    beatPack=next;
+    pattern=stores[beatPack].pattern; presetName=stores[beatPack].preset; bpm=stores[beatPack].bpm;
+    $('bpmSlider').value=bpm; $('bpmVal').textContent=bpm+' BPM';
+    renderPackChrome(); renderChips(); renderGrid(); renderPads();
+  }
+
+  /* ===== Transport ===== */
+  function restartTimer(){
+    if(timer) window.clearInterval(timer);
+    timer=window.setInterval(tick,(60/bpm/4)*1000);
+  }
+  function tick(){
+    var rows=currentRows();
+    var s=step;
+    for(var i=0;i<4;i++){ if(pattern[i][s]) playSound(rows[i]); }
+    if(s===0&&tickCount>0){ beatCount++; $('statusText').textContent='Now Playing • Beat '+beatCount; }
+    tickCount++;
+    shownStep=s;
+    pulseWorld(s);
+    step=(s+1)%16;
+    markStep();
+  }
+  function startSeq(){
+    actx();
+    playing=true; beatCount=1; tickCount=0; step=0; shownStep=-1;
+    $('playBtn').innerHTML='❚❚ Pause'; $('playBtn').classList.add('playing');
+    $('statusPill').classList.add('playing');
+    $('statusText').textContent='Now Playing • Beat 1';
+    restartTimer();
+  }
+  function stopSeq(){
+    playing=false;
+    if(timer) window.clearInterval(timer);
+    timer=null; shownStep=-1;
+    $('playBtn').innerHTML='▶ Play Beat'; $('playBtn').classList.remove('playing');
+    $('statusPill').classList.remove('playing');
+    $('statusText').textContent='Press Play to hear your beat';
+    $('stepGlow').style.opacity='0';
+    markStep();
+  }
+  $('playBtn').addEventListener('click',function(){ if(playing) stopSeq(); else startSeq(); });
+  $('clearBtn').addEventListener('click',function(){
+    pattern=emptyPattern();
+    stores[beatPack].pattern=pattern;
+    renderGrid();
+  });
+  $('packBright').addEventListener('click',function(){ switchBeatPack('bright'); });
+  $('packShadow').addEventListener('click',function(){ switchBeatPack('shadow'); });
+  $('bpmSlider').addEventListener('input',function(){
+    bpm=Number(this.value);
+    stores[beatPack].bpm=bpm;
+    $('bpmVal').textContent=bpm+' BPM';
+    if(playing) restartTimer();
+  });
+  $('volSlider').addEventListener('input',function(){
+    volume=Number(this.value);
+    $('volVal').textContent=volume+'%';
+  });
+  window.addEventListener('keydown',function(e){
+    if(e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement||e.target instanceof HTMLSelectElement) return;
+    var idx=Number(e.key)-1;
+    if(idx>=0&&idx<6){ playSound(currentPads()[idx]); }
+  });
+
+  /* ===== ANOM counter + lessons ===== */
+  var balance=0;
+  var doneCount=0;
+  function fly(amount){
+    var zone=$('flyZone');
+    var s=document.createElement('span');
+    s.className='fly'; s.textContent='+'+amount+' ANOM';
+    zone.appendChild(s);
+    setTimeout(function(){ s.remove(); },1700);
+  }
+  function completeLesson(lesson, card){
+    card.classList.add('done');
+    card.querySelector('.pfill').style.width='100%';
+    card.querySelector('.tap-hint').textContent='✓ COMPLETED — +'+lesson.reward+' ANOM';
+    card.querySelector('.feedback').classList.add('show');
+    fly(lesson.reward);
+    balance+=lesson.reward;
+    $('anomNum').textContent=balance;
+    doneCount++;
+    $('lessonPill').textContent=doneCount+'/3 LESSONS';
+  }
+  function renderLessons(){
+    var grid=$('lessonGrid');
+    LESSONS.forEach(function(lesson,li){
+      var card=document.createElement('article');
+      card.className='card'; card.id='card-'+lesson.id;
+      var answers={}; var finished=false;
+      var glyphSize=lesson.glyph.length>2?'34px':'58px';
+      var qsHtml=lesson.qs.map(function(q,qi){
+        var opts=q.opts.map(function(o,oi){
+          return '<button type="button" class="choice" data-q="'+qi+'" data-o="'+oi+'">'+o+'</button>';
+        }).join('');
+        return '<div class="qblock"><p class="qtext">'+(qi+1)+'. '+q.q+'</p><div class="stack">'+opts+'</div><p class="qfeed" id="feed-'+lesson.id+'-'+qi+'"></p></div>';
+      }).join('');
+      card.innerHTML=
+        '<div class="topbar"></div>'+
+        '<div class="visual" data-open="'+lesson.id+'"><span class="glyph br'+((li%4)+2)+'" style="font-size:'+glyphSize+'">'+lesson.glyph+'</span>'+
+        '<span class="donebadge">✓ DONE</span>'+
+        '<span class="reward">+'+lesson.reward+' ANOM</span></div>'+
+        '<div class="cardbody">'+
+          '<div class="titlerow"><span class="gnumpill">LESSON '+(li+1)+'</span><h3>'+lesson.title+'</h3></div>'+
+          '<p class="motto serif-i">'+lesson.desc+'</p>'+
+          '<div class="pbar"><div class="pfill"></div></div>'+
+          '<p class="tap-hint">TAP TO START THE QUIZ</p>'+
+          '<button type="button" class="open-btn" data-open="'+lesson.id+'">START LESSON ↓</button>'+
+        '</div>'+
+        '<div class="panel" id="panel-'+lesson.id+'"><div class="panel-inner">'+
+          qsHtml+
+          '<div class="feedback">Completed! Great job! ★</div>'+
+        '</div></div>';
+      grid.appendChild(card);
+
+      card.querySelectorAll('[data-open]').forEach(function(el){
+        el.addEventListener('click',function(){
+          $('panel-'+lesson.id).classList.toggle('open');
+        });
+      });
+      card.querySelectorAll('.choice').forEach(function(btn){
+        btn.addEventListener('click',function(){
+          if(finished) return;
+          var qi=Number(btn.getAttribute('data-q'));
+          var oi=Number(btn.getAttribute('data-o'));
+          var q=lesson.qs[qi];
+          answers[qi]=oi;
+          card.querySelectorAll('.choice[data-q="'+qi+'"]').forEach(function(b){
+            b.classList.remove('right','wrong');
+          });
+          var feed=$('feed-'+lesson.id+'-'+qi);
+          if(oi===q.a){
+            btn.classList.add('right');
+            feed.textContent='Great listening! That’s right!';
+            feed.className='qfeed show';
+          } else {
+            btn.classList.remove('wrong'); void btn.offsetWidth; btn.classList.add('wrong');
+            feed.textContent='Try again, you got this!';
+            feed.className='qfeed show bad';
+          }
+          var correct=0;
+          lesson.qs.forEach(function(qq,qqi){ if(answers[qqi]===qq.a) correct++; });
+          card.querySelector('.pfill').style.width=(correct/lesson.qs.length*100)+'%';
+          if(correct===lesson.qs.length){
+            finished=true;
+            completeLesson(lesson, card);
+          }
+        });
+      });
+    });
+  }
+
+  /* ===== Living world ===== */
+  var glowTimer=null;
+  function pulseWorld(s){
+    var g=$('stepGlow'); if(!g) return;
+    g.style.opacity=(s%4===0)?'0.95':'0.45';
+    if(glowTimer) window.clearTimeout(glowTimer);
+    glowTimer=window.setTimeout(function(){ g.style.opacity='0'; },110);
+  }
+  function makeStars(){
+    var wrap=$('stars'); if(!wrap) return;
+    for(var i=0;i<80;i++){
+      var st=document.createElement('span');
+      st.className='star';
+      var sz=(Math.random()*2+1).toFixed(1);
+      st.style.width=sz+'px'; st.style.height=sz+'px';
+      if(i%6===0) st.style.background=['#22d3ee','#fbbf24','#f472b6'][i%3];
+      st.style.left=(Math.random()*100).toFixed(2)+'%';
+      st.style.top=(Math.random()*100).toFixed(2)+'%';
+      st.style.animationDuration=(2.4+Math.random()*2.8).toFixed(2)+'s';
+      st.style.animationDelay=(-Math.random()*4).toFixed(2)+'s';
+      wrap.appendChild(st);
+    }
+  }
+
+  /* ===== Init ===== */
+  makeStars();
+  renderPackChrome();
+  renderChips();
+  renderGrid();
+  renderPads();
+  renderLessons();
+})();
+</script>
+</body>
+</html>
