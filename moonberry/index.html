@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AO Moonberry Farm — Plant it. Water it. Share it.</title>
+<style>
+  :root{
+    --bg:#000000; --card:#050508; --panel:#0a0a12; --panel2:#07070d;
+    --pink:#f472b6; --purple:#a78bfa; --cyan:#00e6ff; --cyansoft:#22d3ee; --green:#22c55e; --gold:#FFC21A;
+    --border:rgba(255,255,255,.10); --border-hover:rgba(0,230,255,.4);
+    --grad:linear-gradient(90deg,#f472b6,#a78bfa,#22d3ee);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:#fff;font-family:system-ui,'Segoe UI',Roboto,Inter,sans-serif;min-height:100vh;overflow-x:hidden}
+  .mono{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace}
+  .serif-i{font-family:Georgia,'Times New Roman',serif;font-style:italic}
+  .grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 20px;position:relative;z-index:1}
+  @media(min-width:768px){.wrap{padding:0 32px}}
+
+  @keyframes breathe{0%,100%{transform:scale(1) translateY(0)}50%{transform:scale(1.04) translateY(-4px)}}
+  .br1{animation:breathe 3.2s ease-in-out infinite}
+  .br2{animation:breathe 3.9s ease-in-out -1.4s infinite}
+  @keyframes flyup{0%{opacity:0;transform:translateY(6px) scale(.8)}15%{opacity:1}100%{opacity:0;transform:translateY(-46px) scale(1.15)}}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  @keyframes popin{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  @keyframes hop{0%,100%{transform:translateY(0)}30%{transform:translateY(-16px) scale(1.05)}60%{transform:translateY(0)}75%{transform:translateY(-8px)}}
+  @keyframes wiggle{0%,100%{transform:rotate(0deg)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+  @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+  @keyframes heartup{0%{opacity:0;transform:translateY(4px) scale(.7)}20%{opacity:1}100%{opacity:0;transform:translateY(-44px) scale(1.2)}}
+  @keyframes beeloop{0%{transform:translate(0,0) rotate(0deg)}25%{transform:translate(14px,-12px) rotate(12deg)}50%{transform:translate(0,-20px) rotate(0deg)}75%{transform:translate(-14px,-12px) rotate(-12deg)}100%{transform:translate(0,0) rotate(0deg)}}
+  @keyframes sparklePulse{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:1;transform:scale(1.1)}}
+
+  /* Living world background */
+  .world{position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none}
+  header,.wrap{position:relative;z-index:1}
+  .orb{position:absolute;border-radius:50%;filter:blur(50px);opacity:.5;will-change:transform}
+  .o1{width:420px;height:420px;left:-120px;top:-100px;background:radial-gradient(circle,#f472b6,transparent 65%);animation:breathe1 3.9s ease-in-out infinite}
+  .o2{width:380px;height:380px;right:-100px;top:6%;background:radial-gradient(circle,#22d3ee,transparent 65%);animation:breathe2 3.2s ease-in-out infinite}
+  .o3{width:300px;height:300px;left:34%;top:38%;background:radial-gradient(circle,#a78bfa,transparent 65%);animation:breathe1 4.1s ease-in-out infinite reverse}
+  .o4{width:340px;height:340px;right:8%;bottom:-120px;background:radial-gradient(circle,#fbbf24,transparent 65%);opacity:.34;animation:breathe2 6s ease-in-out infinite}
+  .o5{width:200px;height:200px;left:8%;bottom:12%;background:radial-gradient(circle,#22c55e,transparent 65%);opacity:.38;animation:breathe1 3.6s ease-in-out infinite}
+  .o6{width:150px;height:150px;right:26%;top:16%;background:radial-gradient(circle,#f472b6,transparent 65%);opacity:.36;animation:breathe2 3.8s ease-in-out infinite reverse}
+  @keyframes breathe1{0%,100%{transform:scale(1) translate(0,0)}50%{transform:scale(1.05) translate(4px,-5px)}}
+  @keyframes breathe2{0%,100%{transform:scale(1.03) translate(0,0)}50%{transform:scale(.99) translate(-5px,4px)}}
+  .stars{position:absolute;inset:0}
+  .star{position:absolute;border-radius:50%;background:#fff;opacity:.15;animation:twinkle ease-in-out infinite}
+  @keyframes twinkle{0%,100%{opacity:.1}50%{opacity:.75}}
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    html{scroll-behavior:auto}
+    .orb,.star{animation:none!important}
+  }
+
+  /* Header / back-nav */
+  header{position:sticky;top:0;z-index:50;background:rgba(0,0,0,.88);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.07)}
+  .hud{display:flex;align-items:center;gap:10px;min-height:56px;max-width:1280px;margin:0 auto;padding:6px 20px;flex-wrap:wrap}
+  @media(min-width:768px){.hud{padding:6px 32px}}
+  .logo{font-weight:800;letter-spacing:.06em;font-size:16px;white-space:nowrap}
+  .hud .spacer{flex:1}
+  .pill{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);font-family:ui-monospace,Menlo,monospace;font-size:12px;white-space:nowrap;min-height:36px}
+  .pill .num{font-weight:800;font-size:16px;color:var(--gold);font-family:system-ui,sans-serif}
+  .pill.nav-link{text-decoration:none;color:#fff;cursor:pointer;transition:all .25s}
+  .pill.nav-link:hover{border-color:rgba(0,230,255,.6);color:var(--cyan)}
+  #flyZone{position:relative}
+  .fly{position:absolute;right:0;top:-6px;font-weight:800;color:var(--gold);font-size:15px;animation:flyup 1.6s ease forwards;pointer-events:none;white-space:nowrap;text-shadow:0 0 12px rgba(255,194,26,.7);z-index:60}
+
+  /* Hero */
+  .hero{text-align:center;padding:52px 0 26px}
+  @media(min-width:768px){.hero{padding:72px 0 34px}}
+  .eyebrow{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.32em;color:rgba(255,255,255,.45)}
+  .hero h1{font-size:clamp(52px,11vw,120px);font-weight:800;line-height:.95;letter-spacing:-.02em;margin-top:10px;display:inline-block}
+  .hero .sub{font-size:clamp(20px,3.2vw,30px);color:rgba(255,255,255,.85);margin-top:8px}
+  .note-line{text-align:center;color:#9ca3af;font-size:13.5px;margin-top:16px}
+  .note-line strong{color:#fff}
+
+  /* Sections + panels */
+  section{padding:24px 0 8px}
+  .sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:16px}
+  .sec-head h2{font-size:20px;font-weight:800;letter-spacing:-.01em;color:var(--cyan)}
+  @media(min-width:768px){.sec-head h2{font-size:26px}}
+  .sec-note{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.18em;color:rgba(255,255,255,.4);text-align:right}
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;position:relative;overflow:hidden}
+  @media(min-width:768px){.panel{padding:24px}}
+  .panel::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--grad)}
+  .two-col{display:grid;grid-template-columns:1fr;gap:20px}
+  @media(min-width:860px){.two-col{grid-template-columns:1fr 1fr}}
+
+  /* Seed bar + tools */
+  .bar-label{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.45);margin-bottom:10px}
+  .seed-bar{display:flex;gap:10px;flex-wrap:wrap}
+  .seed-btn{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:74px;min-height:76px;padding:10px 8px 8px;border-radius:16px;border:2px solid rgba(255,255,255,.12);background:var(--panel);color:#fff;cursor:pointer;transition:all .2s;font-family:system-ui,sans-serif}
+  .seed-btn .se{font-size:36px;line-height:1.1}
+  .seed-btn small{font-size:11px;font-weight:700;color:rgba(255,255,255,.65)}
+  .seed-btn:hover{border-color:var(--cyan)}
+  .seed-btn.selected{border-color:var(--gold);background:rgba(255,194,26,.12);box-shadow:0 0 14px rgba(255,194,26,.25)}
+  .seed-btn.selected small{color:var(--gold)}
+  .tool-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:16px}
+  .tool-btn{display:inline-flex;align-items:center;gap:8px;min-height:52px;padding:10px 20px;border-radius:999px;border:2px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:#fff;font-weight:800;font-size:15px;cursor:pointer;font-family:system-ui,sans-serif;transition:all .2s}
+  .tool-btn .te{font-size:26px}
+  .tool-btn:hover{border-color:var(--cyan)}
+  .tool-btn.active{border-color:var(--cyansoft);background:rgba(34,211,238,.15);box-shadow:0 0 14px rgba(34,211,238,.3)}
+  .tool-hint{font-size:13px;font-weight:600;color:rgba(255,255,255,.5)}
+
+  /* Farm grid */
+  .farm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
+  @media(max-width:560px){.farm-grid{gap:7px}}
+  .plot{position:relative;aspect-ratio:1/1;border-radius:16px;border:2px solid rgba(255,255,255,.10);background:linear-gradient(160deg,#241708,#171006 70%);cursor:pointer;padding:0;overflow:hidden;transition:border-color .2s,transform .15s;font-family:system-ui,sans-serif;min-height:44px}
+  .plot:hover{border-color:rgba(0,230,255,.45)}
+  .plot:active{transform:scale(.96)}
+  .plot .crop{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;line-height:1;transition:font-size .3s}
+  .plot .crop.s1{font-size:clamp(24px,5.5vw,36px)}
+  .plot .crop.s2{font-size:clamp(32px,7vw,46px)}
+  .plot .crop.s3{font-size:clamp(40px,8.5vw,56px)}
+  .plot.ripe{border-color:rgba(255,194,26,.55);box-shadow:0 0 16px rgba(255,194,26,.22)}
+  .plot.ripe .crop{animation:bob 2.2s ease-in-out infinite}
+  .plot .sparkle{position:absolute;top:5px;right:7px;font-size:16px;display:none;animation:sparklePulse 1.2s ease-in-out infinite}
+  .plot.ripe .sparkle{display:block}
+  .plot .badge{position:absolute;font-size:19px;display:none;line-height:1;z-index:3}
+  .plot .badge-water{bottom:6px;right:6px;animation:bob 1.4s ease-in-out infinite}
+  .plot.thirsty .badge-water{display:block}
+  .plot.thirsty .crop{opacity:.75}
+  .plot .badge-weed{bottom:5px;left:6px;font-size:21px}
+  .plot.weedy .badge-weed{display:block}
+  .plot .crow{position:absolute;top:2px;left:50%;transform:translateX(-50%);font-size:27px;display:none;z-index:4;animation:bob 1s ease-in-out infinite}
+  .plot.crowed .crow{display:block}
+  .plot .pbar{position:absolute;left:10%;right:10%;bottom:7px;height:6px;border-radius:99px;background:rgba(255,255,255,.13);overflow:hidden;display:none}
+  .plot .pfill{height:100%;width:0;background:linear-gradient(90deg,#22c55e,#a3e635);border-radius:99px;transition:width .25s linear}
+  .plot.growing .pbar{display:block}
+  .plot.growing::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.10) 50%,transparent 70%);background-size:200% 100%;animation:shimmer 1.6s linear infinite;pointer-events:none}
+  .plot .splash{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:30px;pointer-events:none;animation:heartup 0.9s ease forwards;z-index:5}
+
+  /* Animals */
+  .animals{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;padding-top:6px}
+  .animal-btn{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:104px;min-height:110px;padding:14px 10px 10px;border-radius:18px;border:2px solid rgba(255,255,255,.12);background:var(--panel);color:#fff;cursor:pointer;font-family:system-ui,sans-serif;transition:border-color .2s}
+  .animal-btn:hover{border-color:var(--cyan)}
+  .animal-btn .ae{font-size:52px;line-height:1.1;display:block}
+  .animal-btn small{font-size:11.5px;font-weight:700;color:rgba(255,255,255,.6)}
+  .animal-btn.hopping .ae{animation:hop .6s ease}
+  .animal-btn.bee-loop .ae{animation:beeloop 1.2s ease}
+  .flowers{display:flex;gap:14px;justify-content:center;margin-top:18px;font-size:30px;min-height:40px;align-items:center}
+  .flower{display:inline-block;transition:transform .3s}
+  .flower.bloom{animation:popin .45s ease}
+  .egg-btn{display:none;margin:16px auto 0;min-height:56px;padding:8px 22px;border-radius:999px;border:2px solid var(--gold);background:rgba(255,194,26,.12);color:#fff;font-size:26px;cursor:pointer;font-family:system-ui,sans-serif;align-items:center;gap:8px}
+  .egg-btn.show{display:inline-flex;animation:popin .4s ease}
+  .egg-btn small{font-size:12px;font-weight:700;color:var(--gold)}
+
+  /* Market stand */
+  .stand-friends{display:flex;gap:8px;justify-content:center;font-size:44px;padding-top:4px;position:relative;min-height:58px}
+  .stand-friends .friend{display:inline-block}
+  .stand-friends .friend.bounce{animation:hop .6s ease}
+  .hearts{position:absolute;inset:0;pointer-events:none}
+  .hearts span{position:absolute;font-size:20px;animation:heartup 1.4s ease forwards}
+  .stand-stats{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+  .stat{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);font-family:ui-monospace,Menlo,monospace;font-size:12px}
+  .stat .num{font-weight:800;font-size:16px;color:#fff;font-family:system-ui,sans-serif}
+  .share-btn{display:block;margin:18px auto 0;min-height:56px;padding:14px 34px;border-radius:999px;border:none;background:var(--grad);color:#fff;font-weight:800;font-size:17px;cursor:pointer;font-family:system-ui,sans-serif;transition:filter .2s,transform .15s;box-shadow:0 8px 24px rgba(167,139,250,.35)}
+  .share-btn:hover{filter:brightness(1.15)}
+  .share-btn:active{transform:scale(.96)}
+  .share-btn:disabled{opacity:.45;cursor:default;box-shadow:none}
+  .share-feed{text-align:center;font-size:14.5px;font-weight:700;color:#7ee2a8;min-height:22px;margin-top:12px}
+  .lesson-line{text-align:center;margin-top:14px;padding:13px 16px;border-radius:14px;background:rgba(255,194,26,.09);border:1px solid rgba(255,194,26,.35);font-size:15.5px;font-weight:700;color:#ffe9a8;line-height:1.5}
+
+  /* Trivia hut */
+  .quiz-top{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+  .quiz-emoji{font-size:52px;text-align:center;line-height:1.2;margin-top:8px}
+  .quiz-q{font-size:clamp(19px,3.4vw,24px);font-weight:800;text-align:center;line-height:1.35;margin-top:6px}
+  .quiz-opts{display:grid;gap:10px;margin-top:18px}
+  @media(min-width:640px){.quiz-opts{grid-template-columns:repeat(3,1fr)}}
+  .quiz-opt{display:flex;flex-direction:column;align-items:center;gap:3px;padding:16px 10px 13px;border-radius:16px;border:2px solid rgba(255,255,255,.13);background:rgba(255,255,255,.03);color:#fff;cursor:pointer;font-family:system-ui,sans-serif;transition:all .2s;min-height:96px}
+  .quiz-opt .oe{font-size:38px;line-height:1.1}
+  .quiz-opt small{font-size:13.5px;font-weight:700;text-align:center;line-height:1.3}
+  .quiz-opt:hover{border-color:var(--cyan);background:rgba(0,230,255,.06)}
+  .quiz-opt.right{border-color:var(--green);background:rgba(34,197,94,.16)}
+  .quiz-opt.wrong{border-color:var(--pink);background:rgba(244,114,182,.13);animation:shake .3s}
+  .quiz-opt:disabled{cursor:default;opacity:.85}
+  .quiz-feed{text-align:center;font-size:15px;font-weight:700;min-height:24px;margin-top:14px;color:#7ee2a8}
+  .quiz-feed.bad{color:#ff9aeb}
+  .quiz-done{text-align:center;padding:12px 0 4px}
+  .quiz-done .big{font-size:56px}
+  .quiz-done h3{font-size:24px;font-weight:800;margin-top:6px}
+  .quiz-done p{color:rgba(255,255,255,.65);font-size:15px;margin-top:6px}
+  .again-btn{margin-top:16px;min-height:52px;padding:12px 28px;border-radius:999px;border:none;background:#fff;color:#000;font-family:ui-monospace,Menlo,monospace;font-size:13px;font-weight:700;letter-spacing:.05em;cursor:pointer;transition:all .25s}
+  .again-btn:hover{background:var(--grad);color:#fff}
+
+  /* Lesson toast + celebration */
+  .toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,24px);z-index:80;display:flex;align-items:center;gap:12px;max-width:min(92vw,520px);padding:14px 22px;border-radius:999px;background:rgba(10,10,18,.92);border:1px solid rgba(255,194,26,.45);box-shadow:0 12px 40px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .45s ease,transform .45s ease;backdrop-filter:blur(6px)}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .toast .te{font-size:32px;line-height:1;flex:none}
+  .toast .tt{font-size:16.5px;font-weight:800;line-height:1.35}
+  .celebrate{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .5s ease}
+  .celebrate.show{opacity:1}
+  .celebrate .cbox{text-align:center;background:rgba(5,5,8,.9);border:1px solid rgba(255,194,26,.55);border-radius:24px;padding:34px 38px;max-width:min(92vw,480px);box-shadow:0 20px 60px rgba(0,0,0,.7);backdrop-filter:blur(6px)}
+  .celebrate .cstar{font-size:76px;line-height:1;animation:bob 1.6s ease-in-out infinite}
+  .celebrate .cline{font-size:clamp(19px,4vw,25px);font-weight:800;line-height:1.4;margin-top:12px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .celebrate .csub{font-size:14px;font-weight:700;color:rgba(255,255,255,.65);margin-top:8px}
+
+  /* Footer */
+  footer{margin-top:56px;border-top:1px solid rgba(255,255,255,.08);padding:34px 0 26px;text-align:center}
+  .safe{font-size:clamp(26px,4.5vw,40px)}
+  .safe .grad-text{font-weight:800;letter-spacing:-.01em}
+  footer .mail{display:inline-block;margin-top:12px;color:rgba(255,255,255,.7);font-family:ui-monospace,Menlo,monospace;font-size:13px;text-decoration:underline;text-underline-offset:4px}
+  footer .mail:hover{color:#fff}
+  .footline{margin-top:20px;font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.2em;color:rgba(255,255,255,.22)}
+</style>
+</head>
+<body>
+
+<div class="world" aria-hidden="true">
+  <div class="orb o1"></div>
+  <div class="orb o2"></div>
+  <div class="orb o3"></div>
+  <div class="orb o4"></div>
+  <div class="orb o5"></div>
+  <div class="orb o6"></div>
+  <div class="stars" id="stars"></div>
+</div>
+
+<header>
+  <div class="hud">
+    <span class="logo">AO <span class="grad-text">MOONBERRY FARM</span></span>
+    <a class="pill nav-link" href="https://anomartsy.xyz/">HOMEWORLD</a>
+    <a class="pill nav-link" href="https://anomarsty.lol/">SHOP &amp; MOUNTS</a>
+    <a class="pill nav-link" href="https://anomarsty.lol/glow/">GLOW LESSONS</a>
+    <span class="spacer"></span>
+    <span class="pill">🧺 <span class="num" id="basketNum">0</span></span>
+    <span id="flyZone"><span class="pill">⭐ GLOW <span class="num" id="glowNum">0</span></span></span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <p class="eyebrow">PLANT • WATER • GROW • SHARE</p>
+    <h1 class="grad-text br1">MOONBERRY<br>FARM</h1>
+    <p class="sub serif-i">Plant it. Water it. Share it.</p>
+    <p class="note-line">Tap a seed, tap the soil — <strong>your farm is waiting!</strong> 🌙</p>
+  </div>
+
+  <!-- THE FARM -->
+  <section id="farm">
+    <div class="sec-head">
+      <h2>🌙 The Farm</h2>
+      <span class="sec-note">TAP TO PLANT • WATER • HARVEST</span>
+    </div>
+    <div class="panel">
+      <p class="bar-label">1 • PICK A SEED</p>
+      <div class="seed-bar" id="seedBar"></div>
+      <div class="tool-row">
+        <button class="tool-btn" id="waterBtn" type="button"><span class="te">💧</span> Water</button>
+        <span class="tool-hint">2 • Tap the soil to plant. Tap a 💧 crop to water it. Tap a ✨ crop to pick it!</span>
+      </div>
+      <div class="farm-grid" id="farmGrid"></div>
+    </div>
+  </section>
+
+  <div class="two-col">
+    <!-- ANIMAL CORNER -->
+    <section id="animals">
+      <div class="sec-head">
+        <h2>🐾 Animal Corner</h2>
+        <span class="sec-note">SAY HELLO</span>
+      </div>
+      <div class="panel">
+        <div class="animals">
+          <button class="animal-btn" id="chickenBtn" type="button"><span class="ae">🐔</span><small>Chicken</small></button>
+          <button class="animal-btn" id="bunnyBtn" type="button"><span class="ae">🐰</span><small>Bunny</small></button>
+          <button class="animal-btn" id="beeBtn" type="button"><span class="ae">🐝</span><small>Bees</small></button>
+        </div>
+        <button class="egg-btn" id="eggBtn" type="button">🥚 <small>Tap to collect!</small></button>
+        <div class="flowers" id="flowers">
+          <span class="flower">🌷</span>
+          <span class="flower">🌱</span>
+          <span class="flower">🌷</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- MARKET STAND -->
+    <section id="market">
+      <div class="sec-head">
+        <h2>🏪 Market Stand</h2>
+        <span class="sec-note">SHARE THE HARVEST</span>
+      </div>
+      <div class="panel">
+        <div class="stand-friends" id="friends">
+          <span class="friend">🐶</span>
+          <span class="friend">🐱</span>
+          <span class="friend">🦊</span>
+          <div class="hearts" id="hearts"></div>
+        </div>
+        <div class="stand-stats">
+          <span class="stat">🌾 Picked <span class="num" id="statHarvest">0</span></span>
+          <span class="stat">🧺 Basket <span class="num" id="statBasket">0</span></span>
+          <span class="stat">🤝 Shared <span class="num" id="statShared">0</span></span>
+        </div>
+        <button class="share-btn" id="shareBtn" type="button" disabled>💛 Share the Basket</button>
+        <p class="share-feed" id="shareFeed"></p>
+        <p class="lesson-line">“Doing good is what we love.<br>Sharing it is how we win.” 🌟</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- TRIVIA HUT -->
+  <section id="trivia">
+    <div class="sec-head">
+      <h2>🛖 Trivia Hut</h2>
+      <span class="sec-note">8 QUESTIONS • EARN GLOW</span>
+    </div>
+    <div class="panel">
+      <div id="quizMain">
+        <div class="quiz-top">
+          <span class="pill mono" id="quizCount">1 / 8</span>
+          <span class="pill">⭐ <span class="num" id="quizScore">0</span></span>
+        </div>
+        <p class="quiz-emoji" id="quizEmoji">🧑‍🤝‍🧑</p>
+        <p class="quiz-q" id="quizQ"></p>
+        <div class="quiz-opts" id="quizOpts"></div>
+        <p class="quiz-feed" id="quizFeed"></p>
+      </div>
+      <div class="quiz-done" id="quizDone" hidden>
+        <p class="big">🌟</p>
+        <h3>You did it!</h3>
+        <p id="quizFinal"></p>
+        <button class="again-btn" id="quizAgain" type="button">PLAY AGAIN ↻</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p class="safe"><span class="grad-text">Oly Oly All Come Free!</span></p>
+    <a class="mail" href="mailto:anom@anomoriginals.lol">anom@anomoriginals.lol</a>
+    <p class="footline">© AO UNIVERSE • MOONBERRY FARM • GROW GOOD THINGS</p>
+  </footer>
+
+</div>
+
+<!-- Lesson toast -->
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="te" id="toastEmoji">💧</span>
+  <span class="tt" id="toastText"></span>
+</div>
+
+<!-- Share celebration -->
+<div class="celebrate" id="celebrate" aria-hidden="true">
+  <div class="cbox">
+    <p class="cstar">🌟</p>
+    <p class="cline">Doing good is what we love.<br>Sharing it is how we win.</p>
+    <p class="csub">You shared 3 times — the whole farm is glowing! 💛</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  function $(id){ return document.getElementById(id); }
+  function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+
+  /* ===== Data ===== */
+  var CROPS=[
+    {name:'Moonberry',   emoji:'🌙', grow:8000},
+    {name:'Strawberry',  emoji:'🍓', grow:6000},
+    {name:'Star Carrot', emoji:'🥕', grow:7000},
+    {name:'Cloud Corn',  emoji:'🌽', grow:9000},
+    {name:'Glow Pumpkin',emoji:'🎃', grow:9000}
+  ];
+  var QUESTIONS=[
+    {emoji:'🧑‍🤝‍🧑', q:'Who is the BIG sibling?',
+     opts:[{e:'💙',t:'Pixel',a:true},{e:'👶',t:'Dot'},{e:'🐶',t:'Tater'}],
+     fact:'Pixel is the big sibling. Dot is the new baby.'},
+    {emoji:'🔊', q:'What is Pixel & Dot\u2019s special sound?',
+     opts:[{e:'👆',t:'Click, click',a:true},{e:'🤖',t:'Beep boop'},{e:'🐶',t:'Woof woof'}],
+     fact:'Click, click — a special sound, just for the two of them.'},
+    {emoji:'🐶', q:'What kind of dog is Tater?',
+     opts:[{e:'🐶',t:'Chipin',a:true},{e:'🐑',t:'Sheepdog'},{e:'🐴',t:'Tiny horse'}],
+     fact:'Tater is a chipin — chihuahua + miniature pinscher.'},
+    {emoji:'🐱', q:'What color are Ozka\u2019s eyes?',
+     opts:[{e:'💚',t:'Bright green',a:true},{e:'💙',t:'Blue'},{e:'💜',t:'Purple'}],
+     fact:'Ozka\u2019s eyes are bright green.'},
+    {emoji:'🐕', q:'What does Wendigo look like?',
+     opts:[{e:'🤍',t:'White with brown patches',a:true},{e:'🖤',t:'All black'},{e:'🩷',t:'Pink stripes'}],
+     fact:'Wendigo is white with brown patches.'},
+    {emoji:'🕊️', q:'What are the safe words?',
+     opts:[{e:'🌟',t:'Oly Oly All Come Free!',a:true},{e:'🌙',t:'Time for bed'},{e:'👋',t:'See you later'}],
+     fact:'Oly Oly All Come Free! It is safe now. You can come out.'},
+    {emoji:'✈️', q:'Where does Emotions Flight fly to?',
+     opts:[{e:'🌙',t:'Moonberry Farm',a:true},{e:'🏫',t:'School'},{e:'🏖️',t:'The beach'}],
+     fact:'Emotions Flight flies to Moonberry Farm.'},
+    {emoji:'⭐', q:'How do you earn Glow?',
+     opts:[{e:'💛',t:'Doing good and sharing',a:true},{e:'🧺',t:'Keeping everything'},{e:'🏃',t:'Running fast'}],
+     fact:'Doing good is what we love. Sharing it is how we win.'}
+  ];
+
+  /* ===== State (in-session only) ===== */
+  var glow=0, basket=0, harvested=0, shared=0, shareActions=0;
+  var selectedSeed=0, waterMode=false;
+  var firstRipeDone=false;
+  var lessonSeen={};
+
+  /* ===== Toast (soft lesson banner) ===== */
+  var toastTimer=null;
+  function showToast(emoji, text, ms){
+    $('toastEmoji').textContent=emoji;
+    $('toastText').textContent=text;
+    $('toast').classList.add('show');
+    if(toastTimer) window.clearTimeout(toastTimer);
+    toastTimer=window.setTimeout(function(){ $('toast').classList.remove('show'); }, ms||2800);
+  }
+  function lessonToast(key, emoji, text){
+    var now=Date.now();
+    if(lessonSeen[key] && now-lessonSeen[key]<25000) return;
+    lessonSeen[key]=now;
+    showToast(emoji, text, 3000);
+  }
+
+  /* ===== Glow ===== */
+  function addGlow(n){
+    glow+=n;
+    $('glowNum').textContent=glow;
+    var zone=$('flyZone');
+    var s=document.createElement('span');
+    s.className='fly'; s.textContent='+'+n+' ⭐';
+    zone.appendChild(s);
+    window.setTimeout(function(){ s.remove(); },1700);
+  }
+  function updateBasket(){
+    $('basketNum').textContent=basket;
+    $('statBasket').textContent=basket;
+    $('shareBtn').disabled = basket<=0;
+  }
+
+  /* ===== Farm ===== */
+  var plots=[];
+  function buildFarm(){
+    var grid=$('farmGrid');
+    for(var i=0;i<12;i++){
+      (function(i){
+        var btn=document.createElement('button');
+        btn.type='button'; btn.className='plot';
+        btn.setAttribute('aria-label','Farm plot '+(i+1));
+        btn.innerHTML='<span class="crop s1"></span><span class="sparkle">✨</span>'+
+          '<span class="badge badge-water">💧</span><span class="badge badge-weed">🌾</span>'+
+          '<span class="crow">🐦‍⬛</span><span class="pbar"><span class="pfill"></span></span>';
+        grid.appendChild(btn);
+        var p={stage:0, crop:-1, thirsty:false, thirstAt:0, progress:0, weed:false, crow:false, crowAt:0,
+               el:btn, cropEl:btn.querySelector('.crop'), fillEl:btn.querySelector('.pfill')};
+        plots.push(p);
+        btn.addEventListener('click',function(){ tapPlot(p); });
+      })(i);
+    }
+  }
+  function renderPlot(p){
+    p.el.classList.toggle('thirsty', p.thirsty);
+    p.el.classList.toggle('weedy', p.weed);
+    p.el.classList.toggle('crowed', p.crow);
+    p.el.classList.toggle('ripe', p.stage===3);
+    p.el.classList.toggle('growing', p.stage===2);
+    if(p.stage===0){ p.cropEl.textContent=''; }
+    else if(p.stage===1){ p.cropEl.textContent='🌱'; p.cropEl.className='crop s1'; }
+    else if(p.stage===2){ p.cropEl.textContent = p.progress<0.5 ? '🌱' : '🌿'; p.cropEl.className='crop s2'; }
+    else { p.cropEl.textContent=CROPS[p.crop].emoji; p.cropEl.className='crop s3'; }
+    p.fillEl.style.width = p.stage===2 ? Math.round(p.progress*100)+'%' : '0%';
+  }
+  function splash(p, emoji){
+    var s=document.createElement('span');
+    s.className='splash'; s.textContent=emoji;
+    p.el.appendChild(s);
+    window.setTimeout(function(){ s.remove(); },950);
+  }
+  function tapPlot(p){
+    if(p.crow){
+      p.crow=false; renderPlot(p); splash(p,'💨');
+      lessonToast('tidy','🧹','We keep our farm kind and tidy.');
+      return;
+    }
+    if(p.weed){
+      p.weed=false; renderPlot(p); splash(p,'✨');
+      lessonToast('tidy','🧹','We keep our farm kind and tidy.');
+      return;
+    }
+    if(p.stage===0){
+      p.crop=selectedSeed; p.stage=1; p.progress=0;
+      p.thirsty=false; p.thirstAt=Date.now()+1600;
+      renderPlot(p); splash(p,'🌱');
+      return;
+    }
+    if(p.thirsty){
+      p.thirsty=false; p.stage=2;
+      renderPlot(p); splash(p,'💦');
+      lessonToast('water','💧','Caring helps everything grow. 💧');
+      return;
+    }
+    if(p.stage===3){
+      p.stage=0; p.crop=-1; p.progress=0;
+      basket++; harvested++;
+      $('statHarvest').textContent=harvested;
+      updateBasket(); renderPlot(p);
+      showToast('🧺','Into the basket! Pick more, or share at the stand. 💛',2200);
+      return;
+    }
+    /* still growing */
+    if(waterMode){ splash(p,'💦'); }
+    else { p.cropEl.style.animation='wiggle .4s ease'; window.setTimeout(function(){ p.cropEl.style.animation=''; },450); }
+  }
+
+  /* Seeds + water tool */
+  function buildSeeds(){
+    var bar=$('seedBar');
+    CROPS.forEach(function(c,i){
+      var b=document.createElement('button');
+      b.type='button'; b.className='seed-btn'+(i===selectedSeed?' selected':'');
+      b.innerHTML='<span class="se">'+c.emoji+'</span><small>'+c.name+'</small>';
+      b.setAttribute('aria-label','Plant '+c.name);
+      b.addEventListener('click',function(){
+        selectedSeed=i;
+        bar.querySelectorAll('.seed-btn').forEach(function(x,j){ x.classList.toggle('selected', j===i); });
+      });
+      bar.appendChild(b);
+    });
+    $('waterBtn').addEventListener('click',function(){
+      waterMode=!waterMode;
+      $('waterBtn').classList.toggle('active', waterMode);
+    });
+  }
+
+  /* Farm clock: growth, thirst, weeds, crows */
+  var lastTick=Date.now();
+  function tick(){
+    var now=Date.now();
+    var dt=now-lastTick; lastTick=now;
+    plots.forEach(function(p){
+      if(p.stage===1 && !p.thirsty && now>=p.thirstAt){ p.thirsty=true; renderPlot(p); }
+      if(p.stage===2 && !p.thirsty){
+        p.progress += dt / CROPS[p.crop].grow;
+        if(p.progress>=1){
+          p.progress=1; p.stage=3; renderPlot(p);
+          if(!firstRipeDone){
+            firstRipeDone=true;
+            lessonToast('patience','🌱','Good things take a little time. 🌱');
+          }
+        } else if(Math.random()<0.25){ renderPlot(p); }
+      }
+      if(p.crow && now>=p.crowAt){
+        /* the crow had a gentle nibble — crop drops back a stage, never lost */
+        p.crow=false; p.stage=2; p.progress=0.4;
+        renderPlot(p);
+        showToast('🐦‍⬛','The crow had a little nibble. It will grow back! 🌱',2600);
+      }
+    });
+    /* weeds wander in */
+    var weedCount=plots.filter(function(p){ return p.weed; }).length;
+    if(weedCount<4 && Math.random()<0.010){
+      var open=plots.filter(function(p){ return !p.weed && !p.crow; });
+      if(open.length){ var wp=open[Math.floor(Math.random()*open.length)]; wp.weed=true; renderPlot(wp); }
+    }
+    /* a crow visits a ripe crop now and then */
+    var ripeOpen=plots.filter(function(p){ return p.stage===3 && !p.crow; });
+    if(ripeOpen.length && !plots.some(function(p){ return p.crow; }) && Math.random()<0.006){
+      var cp=ripeOpen[Math.floor(Math.random()*ripeOpen.length)];
+      cp.crow=true; cp.crowAt=now+10000; renderPlot(cp);
+    }
+  }
+
+  /* ===== Animals ===== */
+  function hop(btn){
+    btn.classList.remove('hopping'); void btn.offsetWidth; btn.classList.add('hopping');
+  }
+  var eggReady=false;
+  function initAnimals(){
+    $('chickenBtn').addEventListener('click',function(){
+      hop($('chickenBtn'));
+      lessonToast('gentle','💛','Being gentle is a superpower.');
+      if(!eggReady && Math.random()<0.45){
+        eggReady=true;
+        window.setTimeout(function(){ $('eggBtn').classList.add('show'); },450);
+      }
+    });
+    $('eggBtn').addEventListener('click',function(){
+      eggReady=false;
+      $('eggBtn').classList.remove('show');
+      basket++; harvested++;
+      $('statHarvest').textContent=harvested;
+      updateBasket();
+      showToast('🥚','Egg in the basket! 🧺',2000);
+    });
+    $('bunnyBtn').addEventListener('click',function(){
+      hop($('bunnyBtn'));
+      lessonToast('gentle','💛','Being gentle is a superpower.');
+      if(Math.random()<0.3){
+        addGlow(1);
+        showToast('🐰','You made the bunny happy! +1 ⭐',2200);
+      }
+    });
+    var flowerStages=['🌷','🌸','🌼','🌺'];
+    var flowerIdx=[0,0,0];
+    $('beeBtn').addEventListener('click',function(){
+      var b=$('beeBtn');
+      b.classList.remove('bee-loop'); void b.offsetWidth; b.classList.add('bee-loop');
+      var flowers=$('flowers').querySelectorAll('.flower');
+      flowers.forEach(function(f,i){
+        flowerIdx[i]=(flowerIdx[i]+1)%flowerStages.length;
+        f.textContent=flowerStages[flowerIdx[i]];
+        f.classList.remove('bloom'); void f.offsetWidth; f.classList.add('bloom');
+      });
+    });
+  }
+
+  /* ===== Market stand ===== */
+  var celebrateTimer=null;
+  function initMarket(){
+    $('shareBtn').addEventListener('click',function(){
+      if(basket<=0) return;
+      var n=basket;
+      basket=0; shared+=n; shareActions++;
+      $('statShared').textContent=shared;
+      updateBasket();
+      addGlow(n);
+      $('shareFeed').textContent='You shared '+n+(n===1?' treat':' treats')+' with your neighbors! +'+n+' ⭐';
+      document.querySelectorAll('#friends .friend').forEach(function(f,i){
+        window.setTimeout(function(){ f.classList.remove('bounce'); void f.offsetWidth; f.classList.add('bounce'); }, i*130);
+      });
+      var hearts=$('hearts'); hearts.innerHTML='';
+      ['💛','💖','💛','✨','💛'].forEach(function(h,i){
+        var s=document.createElement('span');
+        s.textContent=h;
+        s.style.left=(18+i*16)+'%'; s.style.top='6px';
+        s.style.animationDelay=(i*0.12)+'s';
+        hearts.appendChild(s);
+      });
+      window.setTimeout(function(){ hearts.innerHTML=''; },1800);
+      if(shareActions%3===0){
+        $('celebrate').classList.add('show');
+        if(celebrateTimer) window.clearTimeout(celebrateTimer);
+        celebrateTimer=window.setTimeout(function(){ $('celebrate').classList.remove('show'); },4600);
+      } else {
+        showToast('💛','Doing good is what we love. Sharing it is how we win.',3200);
+      }
+    });
+  }
+
+  /* ===== Trivia hut ===== */
+  var qi=0, quizScore=0, quizLock=false;
+  function renderQuestion(){
+    quizLock=false;
+    var q=QUESTIONS[qi];
+    $('quizCount').textContent=(qi+1)+' / '+QUESTIONS.length;
+    $('quizScore').textContent=quizScore;
+    $('quizEmoji').textContent=q.emoji;
+    $('quizQ').textContent=q.q;
+    $('quizFeed').textContent=''; $('quizFeed').className='quiz-feed';
+    var box=$('quizOpts'); box.innerHTML='';
+    shuffle(q.opts.slice()).forEach(function(o){
+      var b=document.createElement('button');
+      b.type='button'; b.className='quiz-opt';
+      b.innerHTML='<span class="oe">'+o.e+'</span><small>'+o.t+'</small>';
+      b.addEventListener('click',function(){ answer(b, o, q); });
+      box.appendChild(b);
+    });
+  }
+  function answer(btn, opt, q){
+    if(quizLock) return;
+    if(opt.a){
+      quizLock=true;
+      btn.classList.add('right');
+      quizScore+=5; addGlow(5);
+      $('quizScore').textContent=quizScore;
+      $('quizFeed').textContent='⭐ Yes! '+q.fact;
+      $('quizFeed').className='quiz-feed';
+      $('quizOpts').querySelectorAll('.quiz-opt').forEach(function(x){ x.disabled=true; });
+      window.setTimeout(function(){
+        qi++;
+        if(qi<QUESTIONS.length){ renderQuestion(); }
+        else {
+          $('quizMain').hidden=true;
+          $('quizDone').hidden=false;
+          $('quizFinal').textContent='Trivia score: '+quizScore+' ⭐ — thanks for playing at Moonberry Farm!';
+        }
+      },1500);
+    } else {
+      btn.classList.remove('wrong'); void btn.offsetWidth; btn.classList.add('wrong');
+      btn.disabled=true;
+      $('quizFeed').textContent='Try again — you got this! 💛';
+      $('quizFeed').className='quiz-feed bad';
+    }
+  }
+  function initQuiz(){
+    $('quizAgain').addEventListener('click',function(){
+      qi=0; quizScore=0;
+      $('quizDone').hidden=true;
+      $('quizMain').hidden=false;
+      renderQuestion();
+    });
+    renderQuestion();
+  }
+
+  /* ===== Stars ===== */
+  function makeStars(){
+    var wrap=$('stars'); if(!wrap) return;
+    for(var i=0;i<80;i++){
+      var st=document.createElement('span');
+      st.className='star';
+      var sz=(Math.random()*2+1).toFixed(1);
+      st.style.width=sz+'px'; st.style.height=sz+'px';
+      if(i%6===0) st.style.background=['#22d3ee','#fbbf24','#f472b6'][i%3];
+      st.style.left=(Math.random()*100).toFixed(2)+'%';
+      st.style.top=(Math.random()*100).toFixed(2)+'%';
+      st.style.animationDuration=(2.4+Math.random()*2.8).toFixed(2)+'s';
+      st.style.animationDelay=(-Math.random()*4).toFixed(2)+'s';
+      wrap.appendChild(st);
+    }
+  }
+
+  /* ===== Init ===== */
+  makeStars();
+  buildSeeds();
+  buildFarm();
+  plots.forEach(renderPlot);
+  initAnimals();
+  initMarket();
+  initQuiz();
+  updateBasket();
+  window.setInterval(tick,200);
+})();
+</script>
+</body>
+</html>
